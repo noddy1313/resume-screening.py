@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Resume Ranking System</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #4b6cb7, #182848);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #ffffff20;
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border-radius: 15px;
+      width: 90%;
+      max-width: 600px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    textarea, input[type="file"] {
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      font-size: 1em;
+    }
+
+    button {
+      width: 100%;
+      background: #4b6cb7;
+      color: white;
+      padding: 12px;
+      font-size: 1em;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #3656a0;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background: #fff;
+      color: #000;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #4b6cb7;
+      color: #fff;
+    }
+
+    tr:nth-child(even) {
+      background: #f0f0f0;
+    }
+
+    #loading {
+      text-align: center;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Resume Screening & Ranking</h1>
+    <label>Job Description:</label>
+    <textarea id="jobDesc" rows="5" placeholder="Paste the job description..."></textarea>
+
+    <label>Upload Resumes (PDF):</label>
+    <input type="file" id="resumeFiles" accept=".pdf" multiple />
+
+    <button onclick="uploadAndRank()">Rank Resumes</button>
+
+    <p id="loading">⏳ Processing... Please wait</p>
+
+    <table id="resultsTable" style="display:none;">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Resume</th>
+          <th>Score</th>
+        </tr>
+      </thead>
+      <tbody id="resultsBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    async function uploadAndRank() {
+      const jobDesc = document.getElementById("jobDesc").value.trim();
+      const files = document.getElementById("resumeFiles").files;
+
+      if (!jobDesc || files.length === 0) {
+        alert("Please enter a job description and upload resumes.");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("job_description", jobDesc);
+      for (let i = 0; i < files.length; i++) {
+        formData.append("files", files[i]);
+      }
+
+      document.getElementById("loading").style.display = "block";
+      document.getElementById("resultsTable").style.display = "none";
+
+      const response = await fetch("http://127.0.0.1:5000/rank", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      document.getElementById("loading").style.display = "none";
+
+      const tableBody = document.getElementById("resultsBody");
+      tableBody.innerHTML = "";
+
+      data.results.forEach((item, index) => {
+        const row = `<tr>
+          <td>${index + 1}</td>
+          <td>${item.name}</td>
+          <td>${item.score.toFixed(3)}</td>
+        </tr>`;
+        tableBody.innerHTML += row;
+      });
+
+      document.getElementById("resultsTable").style.display = "table";
+    }
+  </script>
+</body>
+</html>
