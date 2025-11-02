@@ -17,7 +17,7 @@ def rank_resumes(job_description, resumes):
     vectors = vectorizer.toarray()
 
     job_description_vector = vectors[0]
-    resume_vectors = vectors [100:]
+    resume_vectors = vectors [1:]
     cosine_similarities = cosine_similarity([job_description_vector], resume_vectors).flatten()
     
     return cosine_similarities
